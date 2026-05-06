@@ -7,7 +7,7 @@ const STATIC_ASSETS = [
   'https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=DM+Mono:wght@300;400&family=DM+Sans:wght@300;400;500&display=swap',
   'https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js'
 ];
-
+ 
 // ── Install: pre-cache all static assets ─────────────────────────────────────
 self.addEventListener('install', event => {
   event.waitUntil(
@@ -20,7 +20,7 @@ self.addEventListener('install', event => {
     }).then(() => self.skipWaiting())
   );
 });
-
+ 
 // ── Activate: remove outdated caches ─────────────────────────────────────────
 self.addEventListener('activate', event => {
   event.waitUntil(
@@ -36,46 +36,46 @@ self.addEventListener('activate', event => {
     ).then(() => self.clients.claim())
   );
 });
-
+ 
 // ── Fetch: smart routing strategy ────────────────────────────────────────────
 self.addEventListener('fetch', event => {
   const { request } = event;
   const url = new URL(request.url);
-
+ 
   // Never intercept Anthropic API calls — always go to network
   if (url.hostname === 'api.anthropic.com') {
     event.respondWith(fetch(request));
     return;
   }
-
+ 
   // Never intercept non-GET requests
   if (request.method !== 'GET') {
     event.respondWith(fetch(request));
     return;
   }
-
+ 
   // Google Fonts — cache-first, then network
   if (url.hostname === 'fonts.googleapis.com' || url.hostname === 'fonts.gstatic.com') {
     event.respondWith(cacheFirst(request));
     return;
   }
-
+ 
   // CDN assets (Chart.js etc.) — cache-first
   if (url.hostname === 'cdnjs.cloudflare.com') {
     event.respondWith(cacheFirst(request));
     return;
   }
-
+ 
   // App shell (same origin) — network-first with cache fallback
   if (url.origin === self.location.origin) {
     event.respondWith(networkFirst(request));
     return;
   }
-
+ 
   // Everything else — network only
   event.respondWith(fetch(request));
 });
-
+ 
 // ── Strategy: cache-first ────────────────────────────────────────────────────
 async function cacheFirst(request) {
   const cached = await caches.match(request);
@@ -91,7 +91,7 @@ async function cacheFirst(request) {
     return new Response('Offline', { status: 503 });
   }
 }
-
+ 
 // ── Strategy: network-first ──────────────────────────────────────────────────
 async function networkFirst(request) {
   try {
